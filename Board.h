@@ -11,11 +11,11 @@ class Board {
 private:
     char * head;
     int size;
+    int getCol(char col);
+    int getRow(char row);
 public:
     Board(int size);
     void printBoard();
-    int getCol(char col);
-    int getRow(char row);
     void pickField();
 };
 

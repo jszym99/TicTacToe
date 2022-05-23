@@ -16,14 +16,19 @@ void Board::pickField() {
     char field[2];
     std::cout << "Wybierz pole (np. A1): ";
     std::cin >> field;
-    while(!std::cin.good())
+    int col = getCol(field[0]);
+    int row = getRow(field[1]);
+    while(!std::cin.good() || !col || !row)
     {
-        std::cout << "Wartość niepoprawna\n";
+        std::cout << "Wartosc niepoprawna\n";
         std::cin.clear();
         std::cin.ignore(INT_MAX,'\n');
         std::cout << "Wybierz pole (np. A1): ";
         std::cin >> field;
+        col = getCol(field[0]);
+        row = getRow(field[1]);
     }
+    std::cout << col << ", " << row << std::endl;
 }
 
 int Board::getCol(char col){
@@ -38,7 +43,13 @@ int Board::getCol(char col){
     return 0;
 }
 int Board::getRow(char row){
-
+    char num[] = {'1','2','3','4','5','6','7','8','9'};
+    for(int i = 0; i < size; i++){
+        if(row == num[i]){
+            return i+1;
+        }
+    }
+    return 0;
 }
 
 
