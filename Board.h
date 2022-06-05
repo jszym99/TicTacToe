@@ -12,17 +12,30 @@ private:
     char * head;
     int size;
     int length;
-    int getCol(char col);
-    int getRow(char row);
-public:
-    Board(int size, int inLine);
-    void printBoard();
+
+    //! Function translates column letters to number
+    int getCol(char col) const;
+    //! Function translates row number character to number
+    int getRow(char row) const;
+    //! Function finding best move for computer
+    int minimax(int depth, bool maximizer, int alpha, int beta);
+    //! Function taking field coordinates from player
     void pickField();
+public:
+    //! Constructor
+    Board(int size, int inLine);
+    //! Function displays game board
+    void printBoard();
+    //! Function for players move
     void move(char player);
-    bool ifWin(char player);
+    //! Checks if game ended with a tie
     bool ifTie();
-    int minimax(int depth, bool isMax);
+    //! Checks if any player has won
+    bool ifWin(char player);
+    //! Function searching for the best possible move for computer
     int findBestMove();
+    //! Function clears the board
+    void clear();
 
 };
 

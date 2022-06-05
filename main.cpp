@@ -20,8 +20,9 @@ int main() {
             std::cin >> boardSize;
         }
     }
+    // Symbols in line
     while(inLine < 3 || inLine > 5){
-        std::cout << "Podaj dlugosc ciagu znakow (od 3 do 5)\n";
+        std::cout << "Podaj dlugosc ciagu znakow (od 3 do 5 oraz nie wieksza od rozmiaru planszy)\n";
         std::cin >> inLine;
         while(!std::cin.good())
         {
@@ -31,21 +32,50 @@ int main() {
             std::cout << "Podaj dlugosc ciagu znakow (od 3 do 5)\n";
             std::cin >> inLine;
         }
+        while(inLine > boardSize)
+        {
+            std::cout << "Podana dlugosc jest za duza\n";
+            std::cin.clear();
+            std::cin.ignore(INT_MAX,'\n');
+            std::cout << "Podaj dlugosc ciagu znakow (od 3 do 5 oraz nie wieksza od rozmiaru planszy)\n";
+            std::cin >> inLine;
+        }
     }
+
+    std::string cont;
+
     Board board(boardSize, inLine);
-    board.printBoard();
-    while(!board.ifWin('X') && !board.ifWin('O') && !board.ifTie()){
-        board.move('X');
-        if(board.ifWin('X'))
+    while(1) {
+        board.printBoard();
+        while (!board.ifWin('X') && !board.ifWin('O') && !board.ifTie()) {
+
+            // Players move
+            board.move('X');
+            if (board.ifWin('X')) {
+                std::cout << "Wygrales!!!" << std::endl;
+                break;
+            }
+
+            // If game ended with a tie
+            if(board.ifTie()){
+                std::cout << "Remis" << std::endl;
+                break;
+            }
+
+            // Computers move
+            board.findBestMove();
+
+            if (board.ifWin('O')){
+                std::cout << "Komputer wygral" << std::endl;
+                break;
+            }
+        }
+        std::cout << "Czy chcesz zagrac ponownie? [T/N]" << std::endl;
+        std::cin >> cont;
+        if(cont == "nie" || cont == "n" || cont == "Nie" || cont == "N"){
             break;
-        int bestMove = board.findBestMove();
-        std::cout << "Best move: " << bestMove << std::endl;
-        if(board.ifWin('O'))
-            break;
+        }else{
+            board.clear();
+        }
     }
-
-    //int col = getCol(field[0]);
-    //int row = field[1]-48;
-    //std::cout << col << " " << row << std::endl;
-
 }

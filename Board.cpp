@@ -7,7 +7,9 @@
 #define PLAYER 'X'
 #define PC 'O'
 #define EMPTY ' '
+#define MAXDEPTH 25
 
+//! Constructor
 Board::Board(int boardSize, int inLine) {
     length = inLine;
     size = boardSize;
@@ -16,7 +18,14 @@ Board::Board(int boardSize, int inLine) {
         head[i] = EMPTY;
     }
 }
+//! Function clears the board
+void Board::clear() {
+    for (int i = 0; i < size * size; i++) {
+        head[i] = EMPTY;
+    }
+}
 
+//! Function for players move
 void Board::move(char player) {
     if (player != PLAYER && player != PC) {
         std::cerr << "Invalid player symbol\n";
@@ -25,6 +34,7 @@ void Board::move(char player) {
     printBoard();
 }
 
+//! Checks if any player has won
 bool Board::ifWin(char player) {
     int count = 0;
 
@@ -59,11 +69,10 @@ bool Board::ifWin(char player) {
     }
 
 
-
     //check diagonally top-left->bottom-right
     for (int row = 0; row < size - (length - 1); row++) { //rows
-        count = 0;
         for (int col = 0; col < size - (length - 1); col++) { //columns
+            count = 0;
             for (int i = 0; i < length; i++) {
                 if (head[(row + i) * size + (col + i)] == player) {
                     count++;
@@ -77,10 +86,11 @@ bool Board::ifWin(char player) {
         }
     }
 
+
     //check diagonally top-right->bottom-left
     for (int row = 0; row < size - (length - 1); row++) { //rows
-        count = 0;
         for (int col = length - 1; col < size; col++) { //columns
+            count = 0;
             for (int i = 0; i < length; i++) {
                 if (head[(row + i) * size + (col - i)] == player) {
                     count++;
@@ -94,129 +104,128 @@ bool Board::ifWin(char player) {
         }
     }
 
-return false;
+    return false;
 }
 
+//! Checks if game ended with a tie
 bool Board::ifTie() {
-    for(int i = 0; i < size*size; i++){
-        if(head[i] == ' '){
+    for (int i = 0; i < size * size; i++) {
+        if (head[i] == ' ') {
             return false;
         }
     }
     return true;
 }
 
-int Board::minimax(int depth, bool isMax) {
-    //int score = 0;
+//! Function finding best move for computer
+int Board::minimax(int depth, bool maximizer, int alpha, int beta) {
+
+    // Depth limit
+    if (depth >= MAXDEPTH) {
+        if (ifTie())
+            return 0;
+
+        if (maximizer)
+            return 100 - depth;
+
+        if (!maximizer)
+            return -100 + depth;
+    }
 
     // Computer (maximize) won
-    if(ifWin(PC))
-        return 10-depth;
+    if (ifWin(PC))
+        return 100 - depth;
 
     // Player (minimizer) won
-    if(ifWin(PLAYER))
-        return -10+depth;
+    if (ifWin(PLAYER))
+        return -100 + depth;
 
-    if(ifTie())
+    if (ifTie())
         return 0;
 
-    // If this maximizer's move
-    if (isMax)
-    {
+    // Computers move (maximizing)
+    if (maximizer) {
         int best = -1000;
 
-        // Traverse all cells
-        for (int i = 0; i<size; i++)
-        {
-            for (int j = 0; j<size; j++)
-            {
-                // Check if cell is empty
-                if (head[i*size+j]==EMPTY)
-                {
-                    // Make the move
-                    head[i*size+j] = PC;
+        // For each field
+        for (int i = 0; i < size * size; i++) {
+            // Check if field is empty
+            if (head[i] == EMPTY) {
 
-                    // Call minimax recursively and choose
-                    // the maximum value
-                    best = std::max(best,minimax(depth+1, !isMax) );
+                // Place a marker
+                head[i] = PC;
 
-                    // Undo the move
-                    head[i*size+j] = EMPTY;
-                }
+                // Call recursively
+                int val = minimax(depth + 1, !maximizer, alpha, beta);
+                // Pick best score
+                best = std::max(best, val);
+                alpha = std::max(alpha, best);
+
+                // Clear the field
+                head[i] = EMPTY;
             }
+            // Stop if better move has been already found
+            if (alpha >= beta)
+                break;
         }
         return best;
     }
 
-    // If this minimizer's move
-    else
-    {
+    // Players move (minimizing)
+    else {
         int best = 1000;
 
-        // Traverse all cells
-        for (int i = 0; i<size; i++)
-        {
-            for (int j = 0; j<size; j++)
-            {
-                // Check if cell is empty
-                if (head[i*size+j] == EMPTY)
-                {
-                    // Make the move
-                    head[i*size+j] = PLAYER;
+        // For each field
+        for (int i = 0; i < size * size; i++) {
+            // Check if field is empty
+            if (head[i] == EMPTY) {
 
-                    // Call minimax recursively and choose
-                    // the minimum value
-                    best = std::min(best, minimax( depth+1, !isMax));
+                // Place a marker
+                head[i] = PLAYER;
 
-                    // Undo the move
-                    head[i*size+j] = EMPTY;
-                }
+                // Call recursively
+                int val = minimax(depth + 1, !maximizer, alpha, beta);
+                // Pick best score
+                best = std::min(best, val);
+                beta = std::min(beta, best);
+
+                // Clear the field
+                head[i] = EMPTY;
             }
+            // Stop if better move has been already found
+            if (alpha >= beta)
+                break;
         }
         return best;
     }
 
 }
 
-int Board::findBestMove()
-{
-    int bestVal = -1000;
+//! Function searching for the best possible move for computer
+int Board::findBestMove() {
+    int bestMoveVal = -1000;
     int bestMove = -1;
 
-    // Traverse all cells, evaluate minimax function for
-    // all empty cells. And return the cell with optimal
-    // value.
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < size; j++)
-        {
-            // Check if field is empty
-            if (head[i*size+j]==EMPTY)
-            {
-                // Make the move
-                head[i*size+j] = PC;
+    // Find best move for each field
+    for (int i = 0; i < size * size; i++) {
+        // Check if field is empty
+        if (head[i] == EMPTY) {
+            // Place a marker
+            head[i] = PC;
 
-                // compute evaluation function for this
-                // move.
-                int moveVal = minimax(0, false);
+            // Find best move for this field
+            int moveVal = minimax(0, false, -1000, 1000);
 
-                // Undo the move
-                head[i*size+j] = EMPTY;
+            // Clear the field
+            head[i] = EMPTY;
 
-                // If the value of the current move is
-                // more than the best value, then update
-                // best/
-                if (moveVal > bestVal)
-                {
-                    bestMove = i*size+j;
-                    bestVal = moveVal;
-                }
+            // Pick the best move
+            if (moveVal > bestMoveVal) {
+                bestMove = i;
+                bestMoveVal = moveVal;
             }
         }
     }
-
-    printf("The value of the best Move is : %d\n\n",
-           bestVal);
 
     head[bestMove] = PC;
     printBoard();
@@ -224,6 +233,7 @@ int Board::findBestMove()
     return bestMove;
 }
 
+//! Function taking field coordinates from player
 void Board::pickField() {
     char field[2];
     std::cout << "Wybierz pole (np. A1):";
@@ -248,12 +258,11 @@ void Board::pickField() {
         col = getCol(field[0]);
         row = getRow(field[1]);
     }
-    //std::cout << col-1 << ", " << row-1 << std::endl;
     head[(row - 1) * size + (col - 1)] = 'X';
-    //printBoard();
 }
 
-int Board::getCol(char col) {
+//! Function translates column letters to number
+int Board::getCol(char col) const {
     char Letters[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'};
     char letters[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'};
 
@@ -265,7 +274,8 @@ int Board::getCol(char col) {
     return 0;
 }
 
-int Board::getRow(char row) {
+//! Function translates row number character to number
+int Board::getRow(char row) const {
     char num[] = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
     for (int i = 0; i < size; i++) {
         if (row == num[i]) {
@@ -275,7 +285,7 @@ int Board::getRow(char row) {
     return 0;
 }
 
-
+//! Function displays game board
 void Board::printBoard() {
     for (int i = 0; i < size; i++) {
         // Print vertical line
@@ -306,12 +316,5 @@ void Board::printBoard() {
             std::cout << " " << head[i * size + j] << " ";
         }
         std::cout << "\n";
-        /*for(int j = 0; j < size;j++){
-            if(j!=0){
-                std::cout << "|";
-            }
-            std::cout << "     ";
-        }
-        std::cout << "\n";*/
     }
 }
